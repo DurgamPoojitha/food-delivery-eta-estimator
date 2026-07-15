@@ -1,0 +1,56 @@
+# ── DeliverIQ — Docker ignore ─────────────────────────────────────────────────
+# Files and directories excluded from the Docker build context.
+# Keeping the build context small speeds up `docker build` significantly.
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+*.so
+
+# ── Virtual environments ──────────────────────────────────────────────────────
+venv/
+.venv/
+env/
+ENV/
+
+# ── Tests (not needed in production image) ────────────────────────────────────
+tests/
+pytest.ini
+.pytest_cache/
+.coverage
+htmlcov/
+coverage.xml
+
+# ── Development tools ─────────────────────────────────────────────────────────
+requirements-dev.txt
+.ruff_cache/
+.mypy_cache/
+
+# ── Environment files ─────────────────────────────────────────────────────────
+# NEVER include .env in a Docker image — pass secrets at runtime.
+.env
+.env.*
+
+# ── Documentation ─────────────────────────────────────────────────────────────
+README.md
+*.md
+
+# ── IDE / OS ──────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+.DS_Store
+*.swp
+*.swo
+Thumbs.db
+
+# ── Git ───────────────────────────────────────────────────────────────────────
+.git/
+.gitignore

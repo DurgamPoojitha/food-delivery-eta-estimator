@@ -1,0 +1,12 @@
+# ── DeliverIQ Backend — Runtime Dependencies ─────────────────────────────────
+#
+# Install: pip install -r requirements.txt
+#
+# Version strategy: minimum constraints (>=) so pip resolves pre-built wheels
+# for any Python version, avoiding Rust compilation from source.
+
+fastapi>=0.111.0           # Web framework — async-first, OpenAPI auto-generation
+uvicorn[standard]>=0.29.0  # ASGI server with uvloop + watchfiles
+pydantic>=2.7.1            # Data validation and serialisation (v2)
+pydantic-settings>=2.3.0   # BaseSettings — env var loading for Pydantic v2
+python-dotenv>=1.0.1       # .env file loader for local development

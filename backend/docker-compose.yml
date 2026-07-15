@@ -1,0 +1,51 @@
+# ══════════════════════════════════════════════════════════════════════════════
+# DeliverIQ — Docker Compose
+# ══════════════════════════════════════════════════════════════════════════════
+#
+# Usage:
+#   docker compose up --build        ← Build + start
+#   docker compose up -d             ← Start in background
+#   docker compose down              ← Stop + remove containers
+#   docker compose logs -f api       ← Follow API logs
+#   docker compose exec api bash     ← Shell into running container
+#
+# Environment variables are loaded from .env file automatically.
+# Copy .env.example to .env and fill in your values before running.
+# ══════════════════════════════════════════════════════════════════════════════
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime          # Use the lean runtime stage
+    container_name: deliveriq-api
+    image: deliveriq-api:latest
+    ports:
+      - "8000:8000"            # host:container
+
+    # Environment variables — values override .env file
+    environment:
+      - ENVIRONMENT=${ENVIRONMENT:-development}
+      - CORS_ORIGINS=${CORS_ORIGINS:-http://localhost:5173}
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+      - LOG_FORMAT=${LOG_FORMAT:-text}
+
+    # Load additional vars from .env file (e.g. future DB_URL)
+    env_file:
+      - .env
+
+    # Restart policy — restart unless manually stopped
+    restart: unless-stopped
+
+    # Health check for Docker's container health tracking
+    healthcheck:
+      test: >
+        python3 -c "
+        import urllib.request, sys;
+        r = urllib.request.urlopen('http://localhost:8000/');
+        sys.exit(0 if r.status == 200 else 1)"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
