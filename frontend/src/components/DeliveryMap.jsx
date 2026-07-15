@@ -1,16 +1,7 @@
-/**
- * components/DeliveryMap.jsx
- * ==========================
- * Interactive map for placing and dragging restaurant/delivery locations.
- */
-
 import { useEffect, useRef } from 'react'
 import { MapContainer, TileLayer, Marker, Polyline, useMapEvents, useMap } from 'react-leaflet'
 import L from 'leaflet'
 
-// ── Custom Markers ────────────────────────────────────────────────────────────
-// By default, Leaflet's marker images break in Vite without specific config.
-// Using custom HTML markers is cleaner and allows us to use Tailwind + Heroicons styles.
 const createPinIcon = (colorClass) =>
   L.divIcon({
     className: 'custom-pin-icon',
@@ -24,13 +15,12 @@ const createPinIcon = (colorClass) =>
       </div>
     `,
     iconSize: [32, 32],
-    iconAnchor: [16, 32], // Anchor at the bottom tip
+    iconAnchor: [16, 32],
   })
 
 const RESTAURANT_ICON = createPinIcon('bg-brand-orange')
 const DELIVERY_ICON   = createPinIcon('bg-blue-500')
 
-// ── Map Interactions ──────────────────────────────────────────────────────────
 const MapInteractions = ({ onSetRestaurant, onSetDelivery, hasRestaurant, hasDelivery }) => {
   useMapEvents({
     click(e) {
@@ -40,7 +30,6 @@ const MapInteractions = ({ onSetRestaurant, onSetDelivery, hasRestaurant, hasDel
       } else if (!hasDelivery) {
         onSetDelivery(lat, lng)
       }
-      // If both exist, we ignore clicks (users can drag the markers instead)
     },
   })
   return null
@@ -61,7 +50,6 @@ const FitBounds = ({ restaurantPos, deliveryPos }) => {
   return null
 }
 
-// ── Main Component ────────────────────────────────────────────────────────────
 const DeliveryMap = ({
   restaurantLat,
   restaurantLon,
@@ -70,7 +58,6 @@ const DeliveryMap = ({
   onSetRestaurant,
   onSetDelivery
 }) => {
-  // Default to London if nothing is set
   const center = [51.5074, -0.1278]
 
   const restaurantPos = (restaurantLat !== '' && restaurantLon !== '') ? [restaurantLat, restaurantLon] : null
@@ -94,7 +81,7 @@ const DeliveryMap = ({
         scrollWheelZoom={true} 
         className="w-full h-full bg-slate-900"
       >
-        {/* Dark Mode Tiles from CartoDB */}
+        
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -135,7 +122,7 @@ const DeliveryMap = ({
         )}
       </MapContainer>
 
-      {/* Helper Overlay */}
+      
       {(!restaurantPos || !deliveryPos) && (
         <div className="absolute top-6 left-1/2 -translate-x-1/2 z-[1000] glass-panel px-4 py-2 rounded-full text-xs font-bold uppercase tracking-widest text-brand-orange animate-pulse">
           {!restaurantPos ? 'Tap to place Restaurant' : 'Tap to place Customer'}

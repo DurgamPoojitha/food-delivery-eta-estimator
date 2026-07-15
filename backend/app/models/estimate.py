@@ -1,51 +1,30 @@
-"""
-models/estimate.py
-==================
-Purpose:
-    Pydantic v2 data models for the advanced ETA estimation engine.
-
-Added Features:
-    - New Enums for real-world delivery conditions: Busy Level, Peak Hour, Weather.
-    - EstimateResponse now includes `eta_breakdown` to trace how the final
-      time was calculated (transparent AI/Rules engine pattern).
-"""
-
 from enum import Enum
 from typing import Dict
 
 from pydantic import BaseModel, ConfigDict, Field
-
-
-# ── Enumerations ──────────────────────────────────────────────────────────────
 
 class TrafficLevel(str, Enum):
     low    = "low"
     medium = "medium"
     high   = "high"
 
-
 class RestaurantBusyLevel(str, Enum):
     low    = "low"
     medium = "medium"
     high   = "high"
-
 
 class PeakHour(str, Enum):
     none   = "none"
     lunch  = "lunch"
     dinner = "dinner"
 
-
 class WeatherCondition(str, Enum):
     sunny      = "sunny"
     rain       = "rain"
     heavy_rain = "heavy_rain"
 
-
-# ── Request Model ─────────────────────────────────────────────────────────────
-
 class EstimateRequest(BaseModel):
-    """Incoming JSON request body for POST /api/estimate."""
+    
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -72,18 +51,14 @@ class EstimateRequest(BaseModel):
     delivery_lon: float = Field(..., ge=-180.0, le=180.0)
     prep_time: int = Field(..., ge=0, le=180, description="Base prep time in minutes.")
     
-    # ── Advanced Delivery Conditions ──
     traffic: TrafficLevel = Field(..., description="Traffic modifier (1x, 1.4x, 2x travel time).")
     busy_level: RestaurantBusyLevel = Field(..., description="Kitchen backup delay.")
     peak_hour: PeakHour = Field(..., description="System-wide dispatch delay.")
     weather: WeatherCondition = Field(..., description="Weather-related slow down.")
     is_weekend: bool = Field(..., description="Weekend surge delay flag.")
 
-
-# ── Response Model ────────────────────────────────────────────────────────────
-
 class EstimateResponse(BaseModel):
-    """JSON response returned by POST /api/estimate."""
+    
 
     model_config = ConfigDict(
         json_schema_extra={
@@ -112,9 +87,6 @@ class EstimateResponse(BaseModel):
     eta_breakdown: Dict[str, float] = Field(
         description="Itemised breakdown of how the total ETA was calculated in minutes."
     )
-
-
-# ── Error Response Model ──────────────────────────────────────────────────────
 
 class ErrorDetail(BaseModel):
     field:   str

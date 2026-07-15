@@ -1,9 +1,3 @@
-/**
- * components/Hero.jsx
- * ===================
- * The bold headline and 'How it Works' section displayed on the landing page.
- */
-
 import { MapIcon, ArrowTrendingUpIcon, ClockIcon } from '@heroicons/react/24/outline'
 
 const HOW_IT_WORKS = [
@@ -26,7 +20,7 @@ const HOW_IT_WORKS = [
 
 const Hero = () => (
   <>
-    {/* ── Headline ────────────────────────────────────────────────────────── */}
+    
     <div className="text-center mb-16 animate-fade-in">
       <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs font-bold uppercase tracking-widest mb-6">
         <span className="w-1.5 h-1.5 rounded-full bg-blue-400" />
@@ -45,7 +39,7 @@ const Hero = () => (
       </p>
     </div>
 
-    {/* ── Features Strip ──────────────────────────────────────────────────── */}
+    
     <div className="mt-20 grid grid-cols-1 sm:grid-cols-3 gap-6 animate-fade-in pb-10">
       {HOW_IT_WORKS.map(({ icon, title, desc }) => (
         <div key={title} className="glass-panel rounded-2xl p-6 text-center group hover:-translate-y-1 transition-all duration-300">

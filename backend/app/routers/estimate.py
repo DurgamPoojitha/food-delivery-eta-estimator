@@ -1,27 +1,3 @@
-"""
-routers/estimate.py
-===================
-Purpose:
-    HTTP routing for the ETA estimation endpoint.
-    This module owns only HTTP concerns — it contains ZERO business logic.
-
-Thin Router Pattern:
-    - Receives HTTP request → delegates to service → returns HTTP response.
-    - If the route handler is more than 10 lines, logic belongs in the service.
-
-OpenAPI Documentation:
-    - responses= dict documents all possible HTTP responses in Swagger UI,
-      giving API consumers a complete contract without reading source code.
-    - The request body example comes from EstimateRequest.model_config.
-    - Tags group related endpoints together in the Swagger sidebar.
-
-Why no prefix here?
-    The prefix ("/api") is set in main.py via app.include_router(prefix=...).
-    The router itself doesn't know (or care) where it's mounted.
-    This follows the Open/Closed Principle: change the mount path without
-    modifying the router module.
-"""
-
 import logging
 
 from fastapi import APIRouter
@@ -33,7 +9,6 @@ from app.services.eta_service import estimate_eta
 logger = get_logger(__name__)
 
 router = APIRouter(tags=["ETA Estimation"])
-
 
 @router.post(
     "/estimate",
@@ -94,15 +69,7 @@ router = APIRouter(tags=["ETA Estimation"])
     },
 )
 async def estimate_delivery_eta(request: EstimateRequest) -> EstimateResponse:
-    """
-    POST /api/estimate
-
-    FastAPI validates the JSON body against EstimateRequest BEFORE this
-    function is called — invalid input auto-returns 422.
-
-    This handler is intentionally thin: it logs the incoming request
-    at DEBUG level, then delegates entirely to the service layer.
-    """
+    
     logger.debug(
         "POST /api/estimate | restaurant=%r | traffic=%s",
         request.restaurant_name,

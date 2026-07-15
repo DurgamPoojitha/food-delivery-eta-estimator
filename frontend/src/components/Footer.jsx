@@ -1,9 +1,3 @@
-/**
- * components/Footer.jsx
- * =====================
- * The standard application footer.
- */
-
 const Footer = () => (
   <footer className="mt-24 border-t border-white/5 py-10 bg-navy-900/50">
     <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">

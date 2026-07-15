@@ -1,34 +1,8 @@
-"""
-tests/test_estimate_api.py
-==========================
-Purpose:
-    Integration tests for the POST /api/estimate HTTP endpoint and the
-    GET / health check endpoint.
-
-Testing Strategy:
-    - Uses FastAPI's TestClient (backed by httpx) to make real HTTP requests
-      through the full middleware + handler + service stack.
-    - Tests are grouped into classes by endpoint for a clean Pytest output.
-    - Covers: happy path, all traffic levels, all validation error types,
-      boundary values, error response shape, and HTTP method restrictions.
-
-The "client" and "valid_payload" fixtures come from conftest.py.
-
-Why integration tests AND unit tests?
-    - Unit tests (test_eta_service.py) catch pure logic bugs in isolation.
-    - Integration tests here catch wiring bugs:
-        "Is the router mounted at the right prefix?"
-        "Does the CORS middleware run?"
-        "Is the 422 error response shaped correctly?"
-    Both layers are necessary for production confidence.
-"""
-
 import pytest
 from fastapi.testclient import TestClient
 
-
 class TestHealthCheck:
-    """Tests for the GET / health check endpoint."""
+    
 
     def test_health_check_returns_200(self, client: TestClient) -> None:
         response = client.get("/")
@@ -47,9 +21,8 @@ class TestHealthCheck:
         data = client.get("/").json()
         assert "service" in data
 
-
 class TestEstimateEndpointHappyPath:
-    """Tests for POST /api/estimate — valid requests."""
+    
 
     def test_valid_request_returns_200(
         self, client: TestClient, valid_payload: dict
@@ -115,9 +88,8 @@ class TestEstimateEndpointHappyPath:
             f"got {response.status_code}: {response.text}"
         )
 
-
 class TestEstimateEndpointValidation:
-    """Tests for POST /api/estimate — validation error cases."""
+    
 
     def test_invalid_restaurant_lat_above_90_returns_422(
         self, client: TestClient, valid_payload: dict
@@ -172,9 +144,8 @@ class TestEstimateEndpointValidation:
         response = client.post("/api/estimate", json={})
         assert response.status_code == 422
 
-
 class TestErrorResponseShape:
-    """Tests that ALL error responses share the same uniform JSON shape."""
+    
 
     def test_422_error_has_error_key(
         self, client: TestClient, valid_payload: dict
@@ -194,7 +165,7 @@ class TestErrorResponseShape:
     def test_422_error_has_details(
         self, client: TestClient, valid_payload: dict
     ) -> None:
-        """Validation errors must include field-level details."""
+        
         response = client.post("/api/estimate", json={**valid_payload, "restaurant_lat": 999})
         error = response.json()["error"]
         assert "details" in error
@@ -216,9 +187,8 @@ class TestErrorResponseShape:
         assert "error" in data
         assert "code" in data["error"]
 
-
 class TestBoundaryValues:
-    """Tests for boundary values on coordinate and prep_time fields."""
+    
 
     @pytest.mark.parametrize("prep_time", [0, 1, 180])
     def test_prep_time_boundary_values_are_valid(

@@ -1,9 +1,3 @@
-/**
- * components/ResultCard.jsx
- * =========================
- * Displays the ETA estimation results with an itemised receipt breakdown.
- */
-
 import {
   MapIcon,
   ArrowTrendingUpIcon,
@@ -12,7 +6,6 @@ import {
 } from '@heroicons/react/24/outline'
 import StatusBadge from './StatusBadge'
 
-// ── Stat card sub-component ───────────────────────────────────────────────────
 const StatCard = ({ icon, label, value, unit, delay = 0, accent = 'orange' }) => {
   const colors = {
     orange: 'bg-brand-orange/10 text-brand-orange border-brand-orange/20',
@@ -58,7 +51,7 @@ const ResultCard = ({ result, restaurantName, onReset }) => {
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
-      {/* ── Hero panel ──────────────────────────────────────── */}
+      
       <div className="glass-panel rounded-3xl p-10 flex flex-col items-center text-center gap-5 shadow-glow-orange border-t-2 border-t-brand-orange/50">
         <p className="text-slate-400 text-xs font-bold uppercase tracking-widest">
           Estimated ETA for
@@ -75,7 +68,7 @@ const ResultCard = ({ result, restaurantName, onReset }) => {
         <StatusBadge status={delivery_status} size="lg" />
       </div>
 
-      {/* ── Stat grid ────────────────────────────────────────── */}
+      
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StatCard
           icon={<MapIcon className="w-6 h-6" />}
@@ -103,7 +96,7 @@ const ResultCard = ({ result, restaurantName, onReset }) => {
         />
       </div>
 
-      {/* ── Receipt Breakdown ────────────────────────────────── */}
+      
       <div className="glass-panel rounded-3xl p-8 flex flex-col animate-slide-up" style={{ animationDelay: '240ms', opacity: 0 }}>
         <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-6 flex items-center gap-3">
           <span className="w-2 h-2 rounded-full bg-slate-500" />
@@ -125,7 +118,7 @@ const ResultCard = ({ result, restaurantName, onReset }) => {
         </div>
       </div>
 
-      {/* ── Reset button ──────────────────────────────────── */}
+      
       <button onClick={onReset} className="w-full py-5 rounded-2xl border border-slate-700 bg-slate-800/50 hover:bg-slate-700 hover:text-white text-slate-300 font-bold tracking-wide uppercase text-sm transition-all duration-200 ease-out flex items-center justify-center gap-3 active:scale-[0.98]">
         <ArrowPathIcon className="w-5 h-5" />
         Calculate Another ETA

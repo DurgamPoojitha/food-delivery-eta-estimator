@@ -1,9 +1,3 @@
-/**
- * pages/Home.jsx
- * ==============
- * The single page of DeliverIQ. Orchestrates the full user flow.
- */
-
 import { useState } from 'react'
 import Navbar         from '../components/Navbar'
 import Hero           from '../components/Hero'
@@ -27,14 +21,12 @@ const Home = () => {
   const [error,          setError]          = useState(null)
   const [restaurantName, setRestaurantName] = useState('')
 
-  // Shared coordinate state lifted up for Map ↔ Form sync
   const [restaurantLat, setRestaurantLat] = useState('')
   const [restaurantLon, setRestaurantLon] = useState('')
   const [deliveryLat,   setDeliveryLat]   = useState('')
   const [deliveryLon,   setDeliveryLon]   = useState('')
 
   const handleSetRestaurant = (lat, lon) => {
-    // Trim to 5 decimal places for clean UI
     setRestaurantLat(lat.toFixed(5))
     setRestaurantLon(lon.toFixed(5))
   }
@@ -87,7 +79,7 @@ const Home = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start relative z-10">
           
-          {/* Left Column: Interactive Map */}
+          
           <DeliveryMap 
             restaurantLat={restaurantLat}
             restaurantLon={restaurantLon}
@@ -97,7 +89,7 @@ const Home = () => {
             onSetDelivery={handleSetDelivery}
           />
 
-          {/* Right Column: Form / Loading / Results */}
+          
           <div className="flex flex-col gap-8">
             {view === VIEWS.LOADING && (
               <div className="glass-panel rounded-3xl p-16 flex items-center justify-center min-h-[400px]">
@@ -109,7 +101,6 @@ const Home = () => {
               <InputCard 
                 onSubmit={handleSubmit} 
                 isLoading={view === VIEWS.LOADING}
-                // Pass down coordinates as controlled props
                 restaurantLat={restaurantLat}
                 restaurantLon={restaurantLon}
                 deliveryLat={deliveryLat}

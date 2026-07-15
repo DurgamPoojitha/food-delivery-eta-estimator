@@ -1,9 +1,3 @@
-/**
- * components/InputCard.jsx
- * ========================
- * The main input form for collecting restaurant details and advanced delivery conditions.
- */
-
 import { useState } from 'react'
 import {
   MapPinIcon,
@@ -11,7 +5,6 @@ import {
   ChartBarIcon,
 } from '@heroicons/react/24/outline'
 
-// ── Configuration arrays for new Selects ──────────────────────────────────────
 const TRAFFIC_OPTIONS = [
   { value: 'low',    label: 'Low (1x)',      icon: <ChartBarIcon className="w-6 h-6" />, activeClass: 'border-green-500 bg-green-500/10 text-green-400' },
   { value: 'medium', label: 'Medium (1.4x)', icon: <ChartBarIcon className="w-6 h-6" />, activeClass: 'border-yellow-500 bg-yellow-500/10 text-yellow-400' },
@@ -46,7 +39,6 @@ const INITIAL_STATE = {
   is_weekend:      false,
 }
 
-// ── Validators ────────────────────────────────────────────────────────────────
 const isValidLat  = (v) => v !== '' && !isNaN(Number(v)) && Number(v) >= -90  && Number(v) <= 90
 const isValidLon  = (v) => v !== '' && !isNaN(Number(v)) && Number(v) >= -180 && Number(v) <= 180
 const isValidPrep = (v) => v !== '' && !isNaN(Number(v)) && parseInt(v, 10) >= 0 && parseInt(v, 10) <= 180
@@ -62,7 +54,6 @@ const validate = (form, coords) => {
   return errors
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
 const Field = ({ label, id, error, children }) => (
   <div className="flex flex-col gap-1.5">
     <label htmlFor={id} className="field-label">{label}</label>
@@ -86,7 +77,6 @@ const SectionHeader = ({ icon, iconBg, title }) => (
 
 const Divider = () => <div className="h-px bg-white/5" />
 
-// ── Main Component ────────────────────────────────────────────────────────────
 const InputCard = ({ 
   onSubmit, 
   isLoading,
@@ -109,7 +99,6 @@ const InputCard = ({
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }))
   }
 
-  // Clear coordinate errors on change
   const clearCoordError = (field) => {
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }))
   }
@@ -144,7 +133,7 @@ const InputCard = ({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="glass-panel rounded-3xl p-8 flex flex-col gap-8 animate-slide-up">
-      {/* ── Section 1: Core details ─────────────────────────────── */}
+      
       <section>
         <SectionHeader icon={<MapPinIcon className="w-5 h-5" />} iconBg="bg-blue-500/10 text-blue-400 border border-blue-500/20" title="Locations & Prep" />
         <div className="flex flex-col gap-4">
@@ -175,11 +164,11 @@ const InputCard = ({
 
       <Divider />
 
-      {/* ── Section 2: Advanced Conditions ──────────────────────── */}
+      
       <section>
         <SectionHeader icon={<Cog6ToothIcon className="w-5 h-5" />} iconBg="bg-purple-500/10 text-purple-400 border border-purple-500/20" title="Delivery Conditions" />
         <div className="flex flex-col gap-5">
-          {/* Traffic */}
+          
           <div>
             <label className="field-label mb-2 block">Traffic Multiplier</label>
             <div className="grid grid-cols-3 gap-3" role="radiogroup">
@@ -225,7 +214,7 @@ const InputCard = ({
         </div>
       </section>
 
-      {/* ── Submit Button ──────────────────────────────────────── */}
+      
       <button id="estimate-btn" type="submit" disabled={isLoading} className="btn-primary w-full mt-4 flex items-center justify-center gap-2">
         {isLoading ? (
           <>

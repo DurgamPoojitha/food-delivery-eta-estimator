@@ -1,10 +1,3 @@
-"""
-tests/test_eta_service.py
-=========================
-Purpose:
-    Unit tests for the Advanced ETA estimation service layer.
-"""
-
 import pytest
 
 from app.models.estimate import (
@@ -24,7 +17,6 @@ from app.services.eta_service import (
     estimate_eta,
 )
 
-
 class TestGetDeliveryStatus:
     def test_fast_delivery_boundary(self) -> None:
         assert _get_delivery_status(19.99) == "Fast Delivery"
@@ -36,9 +28,8 @@ class TestGetDeliveryStatus:
     def test_delayed_boundary(self) -> None:
         assert _get_delivery_status(40.01) == "Delayed"
 
-
 class TestBusinessRulesContracts:
-    """Ensure the documented modifiers don't accidentally drift."""
+    
     
     def test_traffic_multipliers(self) -> None:
         assert TRAFFIC_MULTIPLIERS[TrafficLevel.low] == 1.0
@@ -62,7 +53,6 @@ class TestBusinessRulesContracts:
 
     def test_weekend_surge(self) -> None:
         assert WEEKEND_SURGE_DELAY == 5.0
-
 
 class TestEstimateETA:
     @staticmethod
