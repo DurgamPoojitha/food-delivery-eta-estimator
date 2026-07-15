@@ -38,10 +38,6 @@ const WEATHER_OPTIONS = [
 
 const INITIAL_STATE = {
   restaurant_name: '',
-  restaurant_lat:  '',
-  restaurant_lon:  '',
-  delivery_lat:    '',
-  delivery_lon:    '',
   prep_time:       '',
   traffic:         'medium',
   busy_level:      'medium',
@@ -55,13 +51,13 @@ const isValidLat  = (v) => v !== '' && !isNaN(Number(v)) && Number(v) >= -90  &&
 const isValidLon  = (v) => v !== '' && !isNaN(Number(v)) && Number(v) >= -180 && Number(v) <= 180
 const isValidPrep = (v) => v !== '' && !isNaN(Number(v)) && parseInt(v, 10) >= 0 && parseInt(v, 10) <= 180
 
-const validate = (form) => {
+const validate = (form, coords) => {
   const errors = {}
   if (!form.restaurant_name.trim())       errors.restaurant_name = 'Required'
-  if (!isValidLat(form.restaurant_lat))   errors.restaurant_lat  = '−90 to 90'
-  if (!isValidLon(form.restaurant_lon))   errors.restaurant_lon  = '−180 to 180'
-  if (!isValidLat(form.delivery_lat))     errors.delivery_lat    = '−90 to 90'
-  if (!isValidLon(form.delivery_lon))     errors.delivery_lon    = '−180 to 180'
+  if (!isValidLat(coords.restaurantLat))  errors.restaurantLat  = '−90 to 90'
+  if (!isValidLon(coords.restaurantLon))  errors.restaurantLon  = '−180 to 180'
+  if (!isValidLat(coords.deliveryLat))    errors.deliveryLat    = '−90 to 90'
+  if (!isValidLon(coords.deliveryLon))    errors.deliveryLon    = '−180 to 180'
   if (!isValidPrep(form.prep_time))       errors.prep_time       = '0 – 180 min'
   return errors
 }
@@ -91,7 +87,18 @@ const SectionHeader = ({ icon, iconBg, title }) => (
 const Divider = () => <div className="h-px bg-white/5" />
 
 // ── Main Component ────────────────────────────────────────────────────────────
-const InputCard = ({ onSubmit, isLoading }) => {
+const InputCard = ({ 
+  onSubmit, 
+  isLoading,
+  restaurantLat,
+  restaurantLon,
+  deliveryLat,
+  deliveryLon,
+  onRestaurantLatChange,
+  onRestaurantLonChange,
+  onDeliveryLatChange,
+  onDeliveryLonChange
+}) => {
   const [form,   setForm]   = useState(INITIAL_STATE)
   const [errors, setErrors] = useState({})
 
@@ -102,11 +109,19 @@ const InputCard = ({ onSubmit, isLoading }) => {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: undefined }))
   }
 
+  // Clear coordinate errors on change
+  const clearCoordError = (field) => {
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }))
+  }
+
   const handleTraffic = (value) => setForm((prev) => ({ ...prev, traffic: value }))
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    const validationErrors = validate(form)
+    
+    const coords = { restaurantLat, restaurantLon, deliveryLat, deliveryLon }
+    const validationErrors = validate(form, coords)
+    
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
       return
@@ -114,10 +129,10 @@ const InputCard = ({ onSubmit, isLoading }) => {
     setErrors({})
     onSubmit({
       restaurant_name: form.restaurant_name.trim(),
-      restaurant_lat:  parseFloat(form.restaurant_lat),
-      restaurant_lon:  parseFloat(form.restaurant_lon),
-      delivery_lat:    parseFloat(form.delivery_lat),
-      delivery_lon:    parseFloat(form.delivery_lon),
+      restaurant_lat:  parseFloat(restaurantLat),
+      restaurant_lon:  parseFloat(restaurantLon),
+      delivery_lat:    parseFloat(deliveryLat),
+      delivery_lon:    parseFloat(deliveryLon),
       prep_time:       parseInt(form.prep_time, 10),
       traffic:         form.traffic,
       busy_level:      form.busy_level,
@@ -137,19 +152,19 @@ const InputCard = ({ onSubmit, isLoading }) => {
             <input id="restaurant_name" name="restaurant_name" type="text" value={form.restaurant_name} onChange={handleChange} placeholder="e.g. Burger Palace" className={`field ${errors.restaurant_name ? 'error' : ''}`} disabled={isLoading} />
           </Field>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Rest. Lat" id="restaurant_lat" error={errors.restaurant_lat}>
-              <input id="restaurant_lat" name="restaurant_lat" type="number" step="any" value={form.restaurant_lat} onChange={handleChange} placeholder="51.5074" className={`field ${errors.restaurant_lat ? 'error' : ''}`} disabled={isLoading} />
+            <Field label="Rest. Lat" id="restaurant_lat" error={errors.restaurantLat}>
+              <input id="restaurant_lat" type="number" step="any" value={restaurantLat} onChange={(e) => { onRestaurantLatChange(e.target.value); clearCoordError('restaurantLat') }} placeholder="51.5074" className={`field ${errors.restaurantLat ? 'error' : ''}`} disabled={isLoading} />
             </Field>
-            <Field label="Rest. Lon" id="restaurant_lon" error={errors.restaurant_lon}>
-              <input id="restaurant_lon" name="restaurant_lon" type="number" step="any" value={form.restaurant_lon} onChange={handleChange} placeholder="-0.1278" className={`field ${errors.restaurant_lon ? 'error' : ''}`} disabled={isLoading} />
+            <Field label="Rest. Lon" id="restaurant_lon" error={errors.restaurantLon}>
+              <input id="restaurant_lon" type="number" step="any" value={restaurantLon} onChange={(e) => { onRestaurantLonChange(e.target.value); clearCoordError('restaurantLon') }} placeholder="-0.1278" className={`field ${errors.restaurantLon ? 'error' : ''}`} disabled={isLoading} />
             </Field>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <Field label="Deliv. Lat" id="delivery_lat" error={errors.delivery_lat}>
-              <input id="delivery_lat" name="delivery_lat" type="number" step="any" value={form.delivery_lat} onChange={handleChange} placeholder="51.5155" className={`field ${errors.delivery_lat ? 'error' : ''}`} disabled={isLoading} />
+            <Field label="Deliv. Lat" id="delivery_lat" error={errors.deliveryLat}>
+              <input id="delivery_lat" type="number" step="any" value={deliveryLat} onChange={(e) => { onDeliveryLatChange(e.target.value); clearCoordError('deliveryLat') }} placeholder="51.5155" className={`field ${errors.deliveryLat ? 'error' : ''}`} disabled={isLoading} />
             </Field>
-            <Field label="Deliv. Lon" id="delivery_lon" error={errors.delivery_lon}>
-              <input id="delivery_lon" name="delivery_lon" type="number" step="any" value={form.delivery_lon} onChange={handleChange} placeholder="-0.0922" className={`field ${errors.delivery_lon ? 'error' : ''}`} disabled={isLoading} />
+            <Field label="Deliv. Lon" id="delivery_lon" error={errors.deliveryLon}>
+              <input id="delivery_lon" type="number" step="any" value={deliveryLon} onChange={(e) => { onDeliveryLonChange(e.target.value); clearCoordError('deliveryLon') }} placeholder="-0.0922" className={`field ${errors.deliveryLon ? 'error' : ''}`} disabled={isLoading} />
             </Field>
           </div>
           <Field label="Base Prep Time (min)" id="prep_time" error={errors.prep_time}>

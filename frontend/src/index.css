@@ -78,6 +78,12 @@
            active:scale-95 transition-all duration-300 disabled:opacity-50 
            disabled:pointer-events-none disabled:scale-100 uppercase text-sm;
   }
+
+  /* Remove default Leaflet background/border for our custom HTML pins */
+  .custom-pin-icon {
+    background: transparent;
+    border: none;
+  }
 }
 
 /* ── Custom Animations ── */
