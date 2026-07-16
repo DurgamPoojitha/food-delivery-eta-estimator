@@ -1,5 +1,13 @@
 import pytest
 from fastapi.testclient import TestClient
+from unittest.mock import patch
+
+@pytest.fixture(autouse=True)
+def mock_external_services():
+    with patch("app.services.eta_service.get_cached_eta", return_value=None), \
+         patch("app.services.eta_service.set_cached_eta", return_value=None), \
+         patch("app.services.eta_service.get_current_weather", return_value=("Sunny", 0.0)):
+        yield
 
 class TestHealthCheck:
     
@@ -35,7 +43,7 @@ class TestEstimateEndpointHappyPath:
     ) -> None:
         data = client.post("/api/estimate", json=valid_payload).json()
         required_fields = {
-            "restaurant_name", "distance_km", "total_eta", "delivery_status", "eta_breakdown"
+            "restaurant_name", "distance_km", "total_eta", "delivery_status", "weather", "weather_delay", "eta_breakdown"
         }
         assert required_fields.issubset(data.keys()), (
             f"Missing fields: {required_fields - data.keys()}"
@@ -49,6 +57,8 @@ class TestEstimateEndpointHappyPath:
         assert isinstance(data["distance_km"],         float)
         assert isinstance(data["total_eta"],           float)
         assert isinstance(data["delivery_status"],     str)
+        assert isinstance(data["weather"],             str)
+        assert isinstance(data["weather_delay"],       float)
         assert isinstance(data["eta_breakdown"],       dict)
 
     def test_restaurant_name_is_echoed(

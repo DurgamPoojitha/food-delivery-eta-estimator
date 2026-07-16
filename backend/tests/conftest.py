@@ -22,6 +22,5 @@ def valid_payload() -> dict:
         "traffic":        "medium",
         "busy_level":     "high",
         "peak_hour":      "dinner",
-        "weather":        "rain",
         "is_weekend":     True,
     }

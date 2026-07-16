@@ -1,17 +1,16 @@
 import pytest
+from unittest.mock import patch
 
 from app.models.estimate import (
     EstimateRequest,
     PeakHour,
     RestaurantBusyLevel,
     TrafficLevel,
-    WeatherCondition,
 )
 from app.services.eta_service import (
     BUSY_DELAYS,
     PEAK_DELAYS,
     TRAFFIC_MULTIPLIERS,
-    WEATHER_DELAYS,
     WEEKEND_SURGE_DELAY,
     _get_delivery_status,
     estimate_eta,
@@ -29,8 +28,6 @@ class TestGetDeliveryStatus:
         assert _get_delivery_status(40.01) == "Delayed"
 
 class TestBusinessRulesContracts:
-    
-    
     def test_traffic_multipliers(self) -> None:
         assert TRAFFIC_MULTIPLIERS[TrafficLevel.low] == 1.0
         assert TRAFFIC_MULTIPLIERS[TrafficLevel.medium] == 1.4
@@ -45,11 +42,6 @@ class TestBusinessRulesContracts:
         assert PEAK_DELAYS[PeakHour.none] == 0.0
         assert PEAK_DELAYS[PeakHour.lunch] == 8.0
         assert PEAK_DELAYS[PeakHour.dinner] == 12.0
-
-    def test_weather_delays(self) -> None:
-        assert WEATHER_DELAYS[WeatherCondition.sunny] == 0.0
-        assert WEATHER_DELAYS[WeatherCondition.rain] == 10.0
-        assert WEATHER_DELAYS[WeatherCondition.heavy_rain] == 20.0
 
     def test_weekend_surge(self) -> None:
         assert WEEKEND_SURGE_DELAY == 5.0
@@ -67,14 +59,17 @@ class TestEstimateETA:
             "traffic":        TrafficLevel.medium,
             "busy_level":     RestaurantBusyLevel.low,
             "peak_hour":      PeakHour.none,
-            "weather":        WeatherCondition.sunny,
             "is_weekend":     False,
         }
         defaults.update(overrides)
         return EstimateRequest(**defaults)
 
-    def test_response_shape_and_breakdown(self) -> None:
-        result = estimate_eta(self._make_request())
+    @pytest.mark.asyncio
+    @patch("app.services.eta_service.get_cached_eta", return_value=None)
+    @patch("app.services.eta_service.set_cached_eta", return_value=None)
+    @patch("app.services.eta_service.get_current_weather", return_value=("Sunny", 0.0))
+    async def test_response_shape_and_breakdown(self, mock_weather, mock_set, mock_get) -> None:
+        result = await estimate_eta(self._make_request())
         assert hasattr(result, "eta_breakdown")
         
         breakdown = result.eta_breakdown
@@ -86,12 +81,15 @@ class TestEstimateETA:
         assert "weather_delay" in breakdown
         assert "weekend_delay" in breakdown
 
-    def test_zero_delays_on_perfect_conditions(self) -> None:
-        result = estimate_eta(self._make_request(
+    @pytest.mark.asyncio
+    @patch("app.services.eta_service.get_cached_eta", return_value=None)
+    @patch("app.services.eta_service.set_cached_eta", return_value=None)
+    @patch("app.services.eta_service.get_current_weather", return_value=("Sunny", 0.0))
+    async def test_zero_delays_on_perfect_conditions(self, mock_weather, mock_set, mock_get) -> None:
+        result = await estimate_eta(self._make_request(
             traffic=TrafficLevel.low,
             busy_level=RestaurantBusyLevel.low,
             peak_hour=PeakHour.none,
-            weather=WeatherCondition.sunny,
             is_weekend=False,
         ))
         
@@ -102,12 +100,15 @@ class TestEstimateETA:
         assert breakdown["weather_delay"] == 0.0
         assert breakdown["weekend_delay"] == 0.0
 
-    def test_all_delays_applied_on_worst_conditions(self) -> None:
-        result = estimate_eta(self._make_request(
+    @pytest.mark.asyncio
+    @patch("app.services.eta_service.get_cached_eta", return_value=None)
+    @patch("app.services.eta_service.set_cached_eta", return_value=None)
+    @patch("app.services.eta_service.get_current_weather", return_value=("Heavy Rain", 20.0))
+    async def test_all_delays_applied_on_worst_conditions(self, mock_weather, mock_set, mock_get) -> None:
+        result = await estimate_eta(self._make_request(
             traffic=TrafficLevel.high,
             busy_level=RestaurantBusyLevel.high,
             peak_hour=PeakHour.dinner,
-            weather=WeatherCondition.heavy_rain,
             is_weekend=True,
         ))
         
