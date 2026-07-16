@@ -5,6 +5,7 @@ import MapView        from '../components/MapView'
 import ETADashboard   from '../components/ETADashboard'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import FeatureCard    from '../components/FeatureCard'
+import HowItWorks     from '../components/HowItWorks'
 import { estimateETA } from '../services/api'
 import { useTheme } from '../hooks/useTheme'
 import { Target, Zap, Route, Server, AlertCircle } from 'lucide-react'
@@ -105,49 +106,53 @@ const Home = () => {
           </div>
         )}
 
-        <div className="flex flex-col lg:flex-row gap-6">
-          <div className="w-full lg:w-[35%] shrink-0" style={{ minHeight: '600px' }}>
-            <SidebarForm
-              onSubmit={handleSubmit}
-              isLoading={view === VIEWS.LOADING}
-              restaurantLat={restaurantLat}
-              restaurantLon={restaurantLon}
-              deliveryLat={deliveryLat}
-              deliveryLon={deliveryLon}
-              onRestaurantLatChange={setRestaurantLat}
-              onRestaurantLonChange={setRestaurantLon}
-              onDeliveryLatChange={setDeliveryLat}
-              onDeliveryLonChange={setDeliveryLon}
-            />
-          </div>
-
-          <div className="flex-1 min-w-0 flex flex-col gap-5">
-            <div style={{ height: mapHeight, minHeight: '380px', borderRadius: '12px', overflow: 'hidden' }}>
-              <MapView
-                theme={theme}
+        {activeSection === 'How it Works' ? (
+          <HowItWorks />
+        ) : (
+          <div className="flex flex-col lg:flex-row gap-6">
+            <div className="w-full lg:w-[35%] shrink-0" style={{ minHeight: '600px' }}>
+              <SidebarForm
+                onSubmit={handleSubmit}
+                isLoading={view === VIEWS.LOADING}
                 restaurantLat={restaurantLat}
                 restaurantLon={restaurantLon}
                 deliveryLat={deliveryLat}
                 deliveryLon={deliveryLon}
-                distanceKm={result?.distance_km}
-                travelMin={result ? Math.round(result.eta_breakdown.base_travel_time + result.eta_breakdown.traffic_delay) : null}
-                onSetRestaurant={handleSetRestaurant}
-                onSetDelivery={handleSetDelivery}
-                onReset={handleReset}
+                onRestaurantLatChange={setRestaurantLat}
+                onRestaurantLonChange={setRestaurantLon}
+                onDeliveryLatChange={setDeliveryLat}
+                onDeliveryLonChange={setDeliveryLon}
               />
             </div>
 
-            {view === VIEWS.LOADING && <LoadingSkeleton />}
+            <div className="flex-1 min-w-0 flex flex-col gap-5">
+              <div style={{ height: mapHeight, minHeight: '380px', borderRadius: '12px', overflow: 'hidden' }}>
+                <MapView
+                  theme={theme}
+                  restaurantLat={restaurantLat}
+                  restaurantLon={restaurantLon}
+                  deliveryLat={deliveryLat}
+                  deliveryLon={deliveryLon}
+                  distanceKm={result?.distance_km}
+                  travelMin={result ? Math.round(result.eta_breakdown.base_travel_time + result.eta_breakdown.traffic_delay) : null}
+                  onSetRestaurant={handleSetRestaurant}
+                  onSetDelivery={handleSetDelivery}
+                  onReset={handleReset}
+                />
+              </div>
 
-            {view === VIEWS.RESULT && result && (
-              <ETADashboard
-                result={result}
-                restaurantName={restaurantName}
-                payload={lastPayload}
-              />
-            )}
+              {view === VIEWS.LOADING && <LoadingSkeleton />}
+
+              {view === VIEWS.RESULT && result && (
+                <ETADashboard
+                  result={result}
+                  restaurantName={restaurantName}
+                  payload={lastPayload}
+                />
+              )}
+            </div>
           </div>
-        </div>
+        )}
 
         <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3">
           {FEATURES.map((f) => <FeatureCard key={f.title} {...f} />)}
