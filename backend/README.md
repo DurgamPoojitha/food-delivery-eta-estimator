@@ -4,6 +4,12 @@ DeliverIQ is an interview-quality, production-ready microservice for estimating 
 
 It calculates ETAs using the **Haversine formula** for great-circle GPS distance, combined with a realistic rules engine that accounts for traffic multipliers, restaurant busy levels, peak dispatch hours, weather delays, and weekend surges.
 
+## Architecture
+- **FastAPI**: High-performance async API framework.
+- **Pydantic**: Type enforcement and payload validation.
+- **Redis**: In-memory caching for repeated ETA requests (10 min TTL).
+- **Docker**: Containerized environment for reproducibility.
+
 ---
 
 ## 🏗️ Clean Architecture
@@ -18,6 +24,7 @@ backend/
 │   ├── models/       ← Pydantic schemas (validations)
 │   ├── routers/      ← HTTP layer (zero business logic)
 │   ├── services/     ← Core business logic (ETA algorithms)
+│   ├── db/           ← Redis client & connection pooling
 │   └── utils/        ← Pure functions (Haversine math)
 └── tests/            ← 70+ Pytest Integration & Unit Tests
 ```
@@ -40,11 +47,15 @@ backend/
 
 ### Option 1: Docker (Recommended)
 ```bash
+# 1. Clone and navigate to backend
 cd backend
-cp .env.example .env
-docker compose up --build
+
+# 2. Start the API and Redis via Docker Compose
+docker compose up --build -d
+
+# The API is now running at http://localhost:8000
+# Redis is running at localhost:6379
 ```
-*API is live at http://localhost:8000*
 
 ### Option 2: Local Python
 ```bash

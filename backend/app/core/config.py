@@ -31,6 +31,8 @@ class Settings(BaseSettings):
     redoc_url: str = "/redoc"
 
     cors_origins: str = "http://localhost:5173"
+    
+    redis_url: str = "redis://localhost:6379/0"
 
     log_level: str = "INFO"
     log_format: str = "text"

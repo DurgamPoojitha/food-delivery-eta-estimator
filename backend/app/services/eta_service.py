@@ -10,6 +10,7 @@ from app.models.estimate import (
     WeatherCondition,
 )
 from app.utils.haversine import haversine
+from app.services.cache_service import get_cached_eta, set_cached_eta
 
 logger = get_logger(__name__)
 
@@ -52,6 +53,12 @@ def _get_delivery_status(total_eta_minutes: float) -> str:
 def estimate_eta(request: EstimateRequest) -> EstimateResponse:
     logger.info("ETA estimation started | restaurant=%r", request.restaurant_name)
 
+    # 1. Check Redis Cache First
+    cached_response = get_cached_eta(request)
+    if cached_response:
+        return cached_response
+
+    # 2. Proceed with heavy calculations if cache miss
     distance_km = haversine(
         lat1=request.restaurant_lat,
         lon1=request.restaurant_lon,
@@ -93,10 +100,15 @@ def estimate_eta(request: EstimateRequest) -> EstimateResponse:
 
     logger.info("ETA complete | total_eta=%.2f | status=%r", total_eta, delivery_status)
 
-    return EstimateResponse(
+    response = EstimateResponse(
         restaurant_name=request.restaurant_name,
         distance_km=round(distance_km, 2),
         total_eta=round(total_eta, 2),
         delivery_status=delivery_status,
         eta_breakdown=eta_breakdown,
     )
+
+    # 3. Store result in Redis asynchronously-like (fire and forget handled in service)
+    set_cached_eta(request, response)
+
+    return response
