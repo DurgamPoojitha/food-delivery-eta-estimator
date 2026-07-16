@@ -125,8 +125,6 @@ food-delivery-eta-estimator/
 
 ## Screenshots
 
-> _Screenshots of the live application._
-
 | Light Theme | Dark Theme |
 |---|---|
 | ![Light Theme](screenshots/light.png) | ![Dark Theme](screenshots/dark.png) |
