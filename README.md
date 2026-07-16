@@ -320,4 +320,4 @@ This project is licensed under the [MIT License](LICENSE).
 
 ---
 
-> Built by [Durgam Poojitha](https://github.com/DurgamPoojitha) — Foodhub Engineering Portfolio Project
+> Built by [Durgam Poojitha](https://github.com/DurgamPoojitha) 
