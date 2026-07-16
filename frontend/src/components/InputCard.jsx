@@ -1,14 +1,10 @@
 import { useState, useEffect } from 'react'
-import {
-  MapPinIcon,
-  Cog6ToothIcon,
-  ChartBarIcon,
-} from '@heroicons/react/24/outline'
+import { ExclamationCircleIcon } from '@heroicons/react/24/outline'
 
 const TRAFFIC_OPTIONS = [
-  { value: 'low',    label: 'Low (1x)',      icon: <ChartBarIcon className="w-6 h-6" />, activeClass: 'border-green-500 bg-green-500/10 text-green-400' },
-  { value: 'medium', label: 'Medium (1.4x)', icon: <ChartBarIcon className="w-6 h-6" />, activeClass: 'border-yellow-500 bg-yellow-500/10 text-yellow-400' },
-  { value: 'high',   label: 'High (2x)',     icon: <ChartBarIcon className="w-6 h-6" />, activeClass: 'border-red-500 bg-red-500/10 text-red-400' },
+  { value: 'low',    label: 'Low',    sub: '1x' },
+  { value: 'medium', label: 'Medium', sub: '1.4x' },
+  { value: 'high',   label: 'High',   sub: '2x' },
 ]
 
 const BUSY_OPTIONS = [
@@ -18,61 +14,44 @@ const BUSY_OPTIONS = [
 ]
 
 const PEAK_OPTIONS = [
-  { value: 'none',   label: 'None (+0 min)' },
-  { value: 'lunch',  label: 'Lunch Rush (+8 min)' },
-  { value: 'dinner', label: 'Dinner Rush (+12 min)' },
+  { value: 'none',   label: 'None' },
+  { value: 'lunch',  label: 'Lunch (+8 min)' },
+  { value: 'dinner', label: 'Dinner (+12 min)' },
 ]
 
-
-const INITIAL_STATE = {
+const INITIAL = {
   restaurant_name: '',
-  prep_time:       '',
+  prep_time:       '15',
   traffic:         'medium',
   busy_level:      'medium',
   peak_hour:       'none',
   is_weekend:      false,
 }
 
-const isValidLat  = (v) => v !== '' && !isNaN(Number(v)) && Number(v) >= -90  && Number(v) <= 90
-const isValidLon  = (v) => v !== '' && !isNaN(Number(v)) && Number(v) >= -180 && Number(v) <= 180
+const isValidLat = (v) => v !== '' && !isNaN(Number(v)) && Number(v) >= -90  && Number(v) <= 90
+const isValidLon = (v) => v !== '' && !isNaN(Number(v)) && Number(v) >= -180 && Number(v) <= 180
 const isValidPrep = (v) => v !== '' && !isNaN(Number(v)) && parseInt(v, 10) >= 0 && parseInt(v, 10) <= 180
 
 const validate = (form, coords) => {
   const errors = {}
-  if (!form.restaurant_name.trim())       errors.restaurant_name = 'Required'
-  if (!isValidLat(coords.restaurantLat))  errors.restaurantLat  = '−90 to 90'
-  if (!isValidLon(coords.restaurantLon))  errors.restaurantLon  = '−180 to 180'
-  if (!isValidLat(coords.deliveryLat))    errors.deliveryLat    = '−90 to 90'
-  if (!isValidLon(coords.deliveryLon))    errors.deliveryLon    = '−180 to 180'
-  if (!isValidPrep(form.prep_time))       errors.prep_time       = '0 – 180 min'
+  if (!form.restaurant_name.trim())      errors.restaurant_name = 'Required'
+  if (!isValidLat(coords.restaurantLat)) errors.restaurantLat   = 'Invalid (−90 to 90)'
+  if (!isValidLon(coords.restaurantLon)) errors.restaurantLon   = 'Invalid (−180 to 180)'
+  if (!isValidLat(coords.deliveryLat))   errors.deliveryLat     = 'Invalid (−90 to 90)'
+  if (!isValidLon(coords.deliveryLon))   errors.deliveryLon     = 'Invalid (−180 to 180)'
+  if (!isValidPrep(form.prep_time))      errors.prep_time       = '0–180 min'
   return errors
 }
 
-const Field = ({ label, id, error, children }) => (
-  <div className="flex flex-col gap-1.5">
-    <label htmlFor={id} className="field-label">{label}</label>
-    {children}
-    {error && (
-      <p className="text-xs text-red-400 flex items-center gap-1.5 animate-fade-in">
-        <span aria-hidden="true">⚠</span><span>{error}</span>
-      </p>
-    )}
-  </div>
+const FieldError = ({ message }) => (
+  <p className="flex items-center gap-1 text-xs text-red-400 mt-1">
+    <ExclamationCircleIcon className="w-3.5 h-3.5 shrink-0" />
+    {message}
+  </p>
 )
 
-const SectionHeader = ({ icon, iconBg, title }) => (
-  <div className="flex items-center gap-3 mb-5">
-    <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${iconBg}`}>
-      {icon}
-    </div>
-    <h2 className="text-white font-bold tracking-wide">{title}</h2>
-  </div>
-)
-
-const Divider = () => <div className="h-px bg-white/5" />
-
-const InputCard = ({ 
-  onSubmit, 
+const InputCard = ({
+  onSubmit,
   isLoading,
   restaurantLat,
   restaurantLon,
@@ -81,9 +60,9 @@ const InputCard = ({
   onRestaurantLatChange,
   onRestaurantLonChange,
   onDeliveryLatChange,
-  onDeliveryLonChange
+  onDeliveryLonChange,
 }) => {
-  const [form,   setForm]   = useState(INITIAL_STATE)
+  const [form,   setForm]   = useState(INITIAL)
   const [errors, setErrors] = useState({})
 
   const handleChange = (e) => {
@@ -94,138 +73,225 @@ const InputCard = ({
   }
 
   const clearCoordError = (field) => {
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: undefined }))
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }))
   }
 
-  const handleTraffic = (value) => setForm((prev) => ({ ...prev, traffic: value }))
+  const buildPayload = () => ({
+    restaurant_name: form.restaurant_name.trim(),
+    restaurant_lat:  parseFloat(restaurantLat),
+    restaurant_lon:  parseFloat(restaurantLon),
+    delivery_lat:    parseFloat(deliveryLat),
+    delivery_lon:    parseFloat(deliveryLon),
+    prep_time:       parseInt(form.prep_time || 0, 10),
+    traffic:         form.traffic,
+    busy_level:      form.busy_level,
+    peak_hour:       form.peak_hour,
+    is_weekend:      form.is_weekend,
+  })
 
   useEffect(() => {
     if (restaurantLat !== '' && restaurantLon !== '' && deliveryLat !== '' && deliveryLon !== '') {
       if (form.restaurant_name.trim() !== '') {
-        submitForm()
+        const coords = { restaurantLat, restaurantLon, deliveryLat, deliveryLon }
+        if (Object.keys(validate(form, coords)).length === 0) {
+          onSubmit(buildPayload())
+        }
       }
     }
   }, [restaurantLat, restaurantLon, deliveryLat, deliveryLon, form.traffic, form.busy_level, form.peak_hour, form.is_weekend])
 
-  const submitForm = () => {
+  const handleSubmit = (e) => {
+    e.preventDefault()
     const coords = { restaurantLat, restaurantLon, deliveryLat, deliveryLon }
     const validationErrors = validate(form, coords)
-    
     if (Object.keys(validationErrors).length > 0) {
       setErrors(validationErrors)
       return
     }
     setErrors({})
-    onSubmit({
-      restaurant_name: form.restaurant_name.trim(),
-      restaurant_lat:  parseFloat(restaurantLat),
-      restaurant_lon:  parseFloat(restaurantLon),
-      delivery_lat:    parseFloat(deliveryLat),
-      delivery_lon:    parseFloat(deliveryLon),
-      prep_time:       parseInt(form.prep_time || 0, 10),
-      traffic:         form.traffic,
-      busy_level:      form.busy_level,
-      peak_hour:       form.peak_hour,
-      is_weekend:      form.is_weekend,
-    })
-  }
-
-  const handleSubmit = (e) => {
-    if (e) e.preventDefault()
-    submitForm()
+    onSubmit(buildPayload())
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="glass-panel rounded-3xl p-8 flex flex-col gap-8 animate-slide-up">
-      
-      <section>
-        <SectionHeader icon={<MapPinIcon className="w-5 h-5" />} iconBg="bg-blue-500/10 text-blue-400 border border-blue-500/20" title="Locations & Prep" />
-        <div className="flex flex-col gap-4">
-          <Field label="Restaurant Name" id="restaurant_name" error={errors.restaurant_name}>
-            <input id="restaurant_name" name="restaurant_name" type="text" value={form.restaurant_name} onChange={handleChange} placeholder="e.g. Burger Palace" className={`field ${errors.restaurant_name ? 'error' : ''}`} disabled={isLoading} />
-          </Field>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Rest. Lat" id="restaurant_lat" error={errors.restaurantLat}>
-              <input id="restaurant_lat" type="number" step="any" value={restaurantLat} onChange={(e) => { onRestaurantLatChange(e.target.value); clearCoordError('restaurantLat') }} placeholder="51.5074" className={`field ${errors.restaurantLat ? 'error' : ''}`} disabled={isLoading} />
-            </Field>
-            <Field label="Rest. Lon" id="restaurant_lon" error={errors.restaurantLon}>
-              <input id="restaurant_lon" type="number" step="any" value={restaurantLon} onChange={(e) => { onRestaurantLonChange(e.target.value); clearCoordError('restaurantLon') }} placeholder="-0.1278" className={`field ${errors.restaurantLon ? 'error' : ''}`} disabled={isLoading} />
-            </Field>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Deliv. Lat" id="delivery_lat" error={errors.deliveryLat}>
-              <input id="delivery_lat" type="number" step="any" value={deliveryLat} onChange={(e) => { onDeliveryLatChange(e.target.value); clearCoordError('deliveryLat') }} placeholder="51.5155" className={`field ${errors.deliveryLat ? 'error' : ''}`} disabled={isLoading} />
-            </Field>
-            <Field label="Deliv. Lon" id="delivery_lon" error={errors.deliveryLon}>
-              <input id="delivery_lon" type="number" step="any" value={deliveryLon} onChange={(e) => { onDeliveryLonChange(e.target.value); clearCoordError('deliveryLon') }} placeholder="-0.0922" className={`field ${errors.deliveryLon ? 'error' : ''}`} disabled={isLoading} />
-            </Field>
-          </div>
-          <Field label="Base Prep Time (min)" id="prep_time" error={errors.prep_time}>
-            <input id="prep_time" name="prep_time" type="number" min="0" max="180" value={form.prep_time} onChange={handleChange} placeholder="15" className={`field ${errors.prep_time ? 'error' : ''}`} disabled={isLoading} />
-          </Field>
+    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+      <div className="panel">
+        <div className="panel-header">
+          <span className="panel-title">Location</span>
         </div>
-      </section>
-
-      <Divider />
-
-      
-      <section>
-        <SectionHeader icon={<Cog6ToothIcon className="w-5 h-5" />} iconBg="bg-purple-500/10 text-purple-400 border border-purple-500/20" title="Delivery Conditions" />
-        <div className="flex flex-col gap-5">
-          
+        <div className="px-4 py-4 flex flex-col gap-3">
           <div>
-            <label className="field-label mb-2 block">Traffic Multiplier</label>
-            <div className="grid grid-cols-3 gap-3" role="radiogroup">
-              {TRAFFIC_OPTIONS.map(({ value, label, icon, activeClass }) => {
-                const isActive = form.traffic === value
-                return (
-                  <button key={value} type="button" onClick={() => handleTraffic(value)} disabled={isLoading} className={`flex flex-col items-center justify-center gap-2 px-3 py-4 rounded-xl border text-sm font-medium transition-all ${isActive ? `${activeClass} scale-[1.02] shadow-lg` : 'border-slate-700/50 bg-slate-800/30 text-slate-400 hover:text-slate-200 hover:bg-slate-700/50'}`}>
-                    {icon}
-                    <span className="text-xs">{label}</span>
-                  </button>
-                )
-              })}
+            <label className="input-label block mb-1" htmlFor="restaurant_name">Restaurant name</label>
+            <input
+              id="restaurant_name"
+              name="restaurant_name"
+              type="text"
+              value={form.restaurant_name}
+              onChange={handleChange}
+              placeholder="e.g. Burger Palace"
+              className={`input-field ${errors.restaurant_name ? 'error' : ''}`}
+              disabled={isLoading}
+            />
+            {errors.restaurant_name && <FieldError message={errors.restaurant_name} />}
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="input-label block mb-1" htmlFor="restaurant_lat">Rest. latitude</label>
+              <input
+                id="restaurant_lat"
+                type="number"
+                step="any"
+                value={restaurantLat}
+                onChange={(e) => { onRestaurantLatChange(e.target.value); clearCoordError('restaurantLat') }}
+                placeholder="51.5074"
+                className={`input-field ${errors.restaurantLat ? 'error' : ''}`}
+                disabled={isLoading}
+              />
+              {errors.restaurantLat && <FieldError message={errors.restaurantLat} />}
+            </div>
+            <div>
+              <label className="input-label block mb-1" htmlFor="restaurant_lon">Rest. longitude</label>
+              <input
+                id="restaurant_lon"
+                type="number"
+                step="any"
+                value={restaurantLon}
+                onChange={(e) => { onRestaurantLonChange(e.target.value); clearCoordError('restaurantLon') }}
+                placeholder="-0.1278"
+                className={`input-field ${errors.restaurantLon ? 'error' : ''}`}
+                disabled={isLoading}
+              />
+              {errors.restaurantLon && <FieldError message={errors.restaurantLon} />}
             </div>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            <Field label="Restaurant Busy Level" id="busy_level">
-              <select name="busy_level" value={form.busy_level} onChange={handleChange} disabled={isLoading} className="field select-icon">
-                {BUSY_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-slate-900 text-white">{o.label}</option>)}
-              </select>
-            </Field>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="input-label block mb-1" htmlFor="delivery_lat">Customer latitude</label>
+              <input
+                id="delivery_lat"
+                type="number"
+                step="any"
+                value={deliveryLat}
+                onChange={(e) => { onDeliveryLatChange(e.target.value); clearCoordError('deliveryLat') }}
+                placeholder="51.5155"
+                className={`input-field ${errors.deliveryLat ? 'error' : ''}`}
+                disabled={isLoading}
+              />
+              {errors.deliveryLat && <FieldError message={errors.deliveryLat} />}
+            </div>
+            <div>
+              <label className="input-label block mb-1" htmlFor="delivery_lon">Customer longitude</label>
+              <input
+                id="delivery_lon"
+                type="number"
+                step="any"
+                value={deliveryLon}
+                onChange={(e) => { onDeliveryLonChange(e.target.value); clearCoordError('deliveryLon') }}
+                placeholder="-0.0922"
+                className={`input-field ${errors.deliveryLon ? 'error' : ''}`}
+                disabled={isLoading}
+              />
+              {errors.deliveryLon && <FieldError message={errors.deliveryLon} />}
+            </div>
+          </div>
+        </div>
+      </div>
 
-            <Field label="Peak Hour Dispatch" id="peak_hour">
-              <select name="peak_hour" value={form.peak_hour} onChange={handleChange} disabled={isLoading} className="field select-icon">
-                {PEAK_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-slate-900 text-white">{o.label}</option>)}
-              </select>
-            </Field>
+      <div className="panel">
+        <div className="panel-header">
+          <span className="panel-title">Delivery parameters</span>
+        </div>
+        <div className="px-4 py-4 flex flex-col gap-4">
+          <div>
+            <label className="input-label block mb-1" htmlFor="prep_time">Base prep time (min)</label>
+            <input
+              id="prep_time"
+              name="prep_time"
+              type="number"
+              min="0"
+              max="180"
+              value={form.prep_time}
+              onChange={handleChange}
+              className={`input-field ${errors.prep_time ? 'error' : ''}`}
+              disabled={isLoading}
+            />
+            {errors.prep_time && <FieldError message={errors.prep_time} />}
           </div>
 
-
-          <label className="flex items-center gap-4 p-4 rounded-xl border border-slate-700/50 bg-slate-800/30 cursor-pointer hover:bg-slate-700/50 hover:border-slate-600 transition-colors group">
-            <input type="checkbox" name="is_weekend" checked={form.is_weekend} onChange={handleChange} disabled={isLoading} className="w-5 h-5 rounded bg-slate-900 border-slate-600 text-brand-orange focus:ring-brand-orange focus:ring-offset-slate-800" />
-            <div className="flex flex-col">
-              <span className="text-white font-semibold text-sm group-hover:text-brand-orange transition-colors">Weekend Delivery Surge</span>
-              <span className="text-slate-400 text-xs mt-0.5">+5 min flat delay</span>
+          <div>
+            <label className="input-label block mb-2">Traffic</label>
+            <div className="grid grid-cols-3 gap-2">
+              {TRAFFIC_OPTIONS.map(({ value, label, sub }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setForm((prev) => ({ ...prev, traffic: value }))}
+                  disabled={isLoading}
+                  className={`py-2 px-3 rounded-lg border text-xs font-medium transition-colors text-center ${
+                    form.traffic === value
+                      ? 'bg-orange-500/10 border-orange-500/60 text-orange-400'
+                      : 'bg-gray-900 border-gray-700 text-gray-400 hover:border-gray-600 hover:text-gray-300'
+                  }`}
+                >
+                  <div>{label}</div>
+                  <div className="text-gray-500 font-normal">{sub}</div>
+                </button>
+              ))}
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="input-label block mb-1" htmlFor="busy_level">Kitchen busy level</label>
+              <select
+                id="busy_level"
+                name="busy_level"
+                value={form.busy_level}
+                onChange={handleChange}
+                disabled={isLoading}
+                className="select-field"
+              >
+                {BUSY_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value} className="bg-gray-900">{o.label}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="input-label block mb-1" htmlFor="peak_hour">Peak hour</label>
+              <select
+                id="peak_hour"
+                name="peak_hour"
+                value={form.peak_hour}
+                onChange={handleChange}
+                disabled={isLoading}
+                className="select-field"
+              >
+                {PEAK_OPTIONS.map((o) => (
+                  <option key={o.value} value={o.value} className="bg-gray-900">{o.label}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <label className="flex items-center gap-3 cursor-pointer group">
+            <input
+              type="checkbox"
+              name="is_weekend"
+              checked={form.is_weekend}
+              onChange={handleChange}
+              disabled={isLoading}
+              className="w-4 h-4 rounded border-gray-600 bg-gray-900 text-orange-500 focus:ring-orange-500 focus:ring-offset-gray-950"
+            />
+            <span className="text-sm text-gray-400 group-hover:text-gray-300 transition-colors">
+              Weekend surge <span className="text-gray-600">(+5 min)</span>
+            </span>
           </label>
         </div>
-      </section>
+      </div>
 
-      
-      <button id="estimate-btn" type="submit" disabled={isLoading} className="btn-primary w-full mt-4 flex items-center justify-center gap-2">
-        {isLoading ? (
-          <>
-            <svg className="w-5 h-5 animate-spin" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            Estimating...
-          </>
-        ) : (
-          'Estimate Realistic ETA'
-        )}
+      <button id="estimate-btn" type="submit" disabled={isLoading} className="btn-primary w-full">
+        {isLoading ? 'Calculating...' : 'Calculate ETA'}
       </button>
     </form>
   )
