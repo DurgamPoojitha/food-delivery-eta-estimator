@@ -1,39 +1,52 @@
 import { useState } from 'react'
 import Navbar         from '../components/Navbar'
-import MapSelector    from '../components/MapSelector'
-import InputCard      from '../components/InputCard'
-import ETAResult      from '../components/ETAResult'
-import LoadingSpinner from '../components/LoadingSpinner'
-import Footer         from '../components/Footer'
+import SidebarForm    from '../components/SidebarForm'
+import MapView        from '../components/MapView'
+import ETADashboard   from '../components/ETADashboard'
+import LoadingSkeleton from '../components/LoadingSkeleton'
+import FeatureCard    from '../components/FeatureCard'
 import { estimateETA } from '../services/api'
-import { ExclamationCircleIcon } from '@heroicons/react/24/outline'
+import { useTheme } from '../hooks/useTheme'
+import { Target, Zap, Route, Server, AlertCircle } from 'lucide-react'
 
-const VIEWS = Object.freeze({ FORM: 'form', LOADING: 'loading', RESULT: 'result' })
+const VIEWS = Object.freeze({ IDLE: 'idle', LOADING: 'loading', RESULT: 'result' })
+
+const FEATURES = [
+  { icon: <Target size={16} />,  title: 'Accurate Estimation',     subtitle: 'Powered by real-world data' },
+  { icon: <Zap size={16} />,     title: 'Real-time Conditions',    subtitle: 'Traffic, weather & more' },
+  { icon: <Route size={16} />,   title: 'Smart Routing Logic',     subtitle: 'Optimised for fastest delivery' },
+  { icon: <Server size={16} />,  title: 'Enterprise Ready',        subtitle: 'Built for scale & reliability' },
+]
 
 const Home = () => {
-  const [view,           setView]           = useState(VIEWS.FORM)
-  const [result,         setResult]         = useState(null)
-  const [error,          setError]          = useState(null)
+  const { theme, toggle } = useTheme()
+
+  const [view,          setView]          = useState(VIEWS.IDLE)
+  const [result,        setResult]        = useState(null)
+  const [lastPayload,   setLastPayload]   = useState(null)
+  const [error,         setError]         = useState(null)
   const [restaurantName, setRestaurantName] = useState('')
 
   const [restaurantLat, setRestaurantLat] = useState('')
   const [restaurantLon, setRestaurantLon] = useState('')
   const [deliveryLat,   setDeliveryLat]   = useState('')
   const [deliveryLon,   setDeliveryLon]   = useState('')
+  const [activeSection, setActiveSection] = useState('Estimator')
 
   const handleSetRestaurant = (lat, lng) => {
-    setRestaurantLat(lat.toFixed(6))
-    setRestaurantLon(lng.toFixed(6))
+    setRestaurantLat(lat.toFixed(4))
+    setRestaurantLon(lng.toFixed(4))
   }
 
   const handleSetDelivery = (lat, lng) => {
-    setDeliveryLat(lat.toFixed(6))
-    setDeliveryLon(lng.toFixed(6))
+    setDeliveryLat(lat.toFixed(4))
+    setDeliveryLon(lng.toFixed(4))
   }
 
   const handleSubmit = async (payload) => {
     setError(null)
     setRestaurantName(payload.restaurant_name)
+    setLastPayload(payload)
     setView(VIEWS.LOADING)
     try {
       const data = await estimateETA(payload)
@@ -43,99 +56,115 @@ const Home = () => {
       const status = err.response?.status
       if (status === 422) {
         const detail = err.response.data?.detail
-        setError(Array.isArray(detail) ? detail.map((d) => d.msg).join('. ') : 'Invalid input. Check your values.')
+        setError(Array.isArray(detail) ? detail.map((d) => d.msg).join('. ') : 'Invalid input.')
       } else if (!err.response) {
         setError('Cannot reach the backend. Ensure the FastAPI server is running on port 8000.')
       } else {
         setError(err.response?.data?.detail || 'An unexpected error occurred.')
       }
-      setView(VIEWS.FORM)
+      setView(VIEWS.IDLE)
     }
   }
 
   const handleReset = () => {
     setResult(null)
     setError(null)
+    setLastPayload(null)
     setRestaurantLat('')
     setRestaurantLon('')
     setDeliveryLat('')
     setDeliveryLon('')
-    setView(VIEWS.FORM)
+    setView(VIEWS.IDLE)
   }
 
+  const mapHeight = view === VIEWS.RESULT ? '420px' : '460px'
+
   return (
-    <div className="min-h-screen bg-gray-950 flex flex-col">
-      <Navbar />
+    <div className="min-h-screen flex flex-col" style={{ backgroundColor: 'var(--color-bg)' }}>
+      <Navbar
+        theme={theme}
+        onToggle={toggle}
+        activeSection={activeSection}
+        onNavClick={setActiveSection}
+      />
 
-      <div className="border-b border-gray-800 bg-gray-950">
-        <div className="max-w-screen-xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-sm font-semibold text-gray-100">Food Delivery ETA Estimator</h1>
-            <p className="text-xs text-gray-500 mt-0.5">
-              Estimate delivery time using distance, traffic, preparation time, and weather conditions.
-            </p>
+      <main className="flex-1 w-full max-w-screen-2xl mx-auto px-6 py-6">
+        {error && (
+          <div
+            className="flex items-center gap-2 text-sm mb-4 px-4 py-3 rounded-xl"
+            style={{ backgroundColor: '#FEF2F2', border: '1px solid #FECACA', color: '#DC2626' }}
+          >
+            <AlertCircle size={15} />
+            <span>{error}</span>
+            <button
+              onClick={() => setError(null)}
+              className="ml-auto text-xs font-medium hover:underline"
+            >
+              Dismiss
+            </button>
           </div>
-          <div className="flex items-center gap-4 text-xs text-gray-500">
-            <span>Haversine distance</span>
-            <span className="text-gray-700">·</span>
-            <span>OpenWeatherMap</span>
-            <span className="text-gray-700">·</span>
-            <span>Redis cache</span>
+        )}
+
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="w-full lg:w-[35%] shrink-0" style={{ minHeight: '600px' }}>
+            <SidebarForm
+              onSubmit={handleSubmit}
+              isLoading={view === VIEWS.LOADING}
+              restaurantLat={restaurantLat}
+              restaurantLon={restaurantLon}
+              deliveryLat={deliveryLat}
+              deliveryLon={deliveryLon}
+              onRestaurantLatChange={setRestaurantLat}
+              onRestaurantLonChange={setRestaurantLon}
+              onDeliveryLatChange={setDeliveryLat}
+              onDeliveryLonChange={setDeliveryLon}
+            />
           </div>
-        </div>
-      </div>
 
-      <div className="flex-1 flex overflow-hidden" style={{ height: 'calc(100vh - 100px)' }}>
-        <div className="flex-1 min-w-0 relative">
-          <MapSelector
-            restaurantLat={restaurantLat}
-            restaurantLon={restaurantLon}
-            deliveryLat={deliveryLat}
-            deliveryLon={deliveryLon}
-            onSetRestaurant={handleSetRestaurant}
-            onSetDelivery={handleSetDelivery}
-            onReset={handleReset}
-          />
-        </div>
-
-        <div className="w-[380px] shrink-0 border-l border-gray-800 bg-gray-950 overflow-y-auto">
-          <div className="p-4 flex flex-col gap-4">
-            {error && (
-              <div className="flex items-start gap-2 text-xs text-red-400 bg-red-500/5 border border-red-500/20 rounded-lg p-3">
-                <ExclamationCircleIcon className="w-4 h-4 shrink-0 mt-0.5" />
-                <span>{error}</span>
-              </div>
-            )}
-
-            {view === VIEWS.LOADING && (
-              <div className="panel px-4 py-6 flex items-center justify-center">
-                <LoadingSpinner />
-              </div>
-            )}
-
-            {view !== VIEWS.LOADING && (
-              <InputCard
-                onSubmit={handleSubmit}
-                isLoading={view === VIEWS.LOADING}
+          <div className="flex-1 min-w-0 flex flex-col gap-5">
+            <div style={{ height: mapHeight, minHeight: '380px', borderRadius: '12px', overflow: 'hidden' }}>
+              <MapView
+                theme={theme}
                 restaurantLat={restaurantLat}
                 restaurantLon={restaurantLon}
                 deliveryLat={deliveryLat}
                 deliveryLon={deliveryLon}
-                onRestaurantLatChange={setRestaurantLat}
-                onRestaurantLonChange={setRestaurantLon}
-                onDeliveryLatChange={setDeliveryLat}
-                onDeliveryLonChange={setDeliveryLon}
+                distanceKm={result?.distance_km}
+                travelMin={result ? Math.round(result.eta_breakdown.base_travel_time + result.eta_breakdown.traffic_delay) : null}
+                onSetRestaurant={handleSetRestaurant}
+                onSetDelivery={handleSetDelivery}
+                onReset={handleReset}
               />
-            )}
+            </div>
+
+            {view === VIEWS.LOADING && <LoadingSkeleton />}
 
             {view === VIEWS.RESULT && result && (
-              <ETAResult result={result} restaurantName={restaurantName} onReset={handleReset} />
+              <ETADashboard
+                result={result}
+                restaurantName={restaurantName}
+                payload={lastPayload}
+              />
             )}
           </div>
         </div>
-      </div>
 
-      <Footer />
+        <div className="mt-8 grid grid-cols-2 lg:grid-cols-4 gap-3">
+          {FEATURES.map((f) => <FeatureCard key={f.title} {...f} />)}
+        </div>
+      </main>
+
+      <footer style={{ borderTop: '1px solid var(--color-border)', backgroundColor: 'var(--color-surface)' }}>
+        <div className="max-w-screen-2xl mx-auto px-6 py-4 flex items-center justify-between">
+          <p className="text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            © {new Date().getFullYear()} DeliverIQ — Foodhub Engineering
+          </p>
+          <div className="flex gap-4 text-xs" style={{ color: 'var(--color-text-muted)' }}>
+            <a href="http://localhost:8000/docs" target="_blank" rel="noreferrer" className="hover:underline">API Docs</a>
+            <a href="https://github.com/DurgamPoojitha/food-delivery-eta-estimator" target="_blank" rel="noreferrer" className="hover:underline">GitHub</a>
+          </div>
+        </div>
+      </footer>
     </div>
   )
 }

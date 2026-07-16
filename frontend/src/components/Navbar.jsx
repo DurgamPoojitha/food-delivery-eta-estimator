@@ -1,39 +1,57 @@
-const Navbar = () => (
-  <header className="sticky top-0 z-50 bg-gray-950 border-b border-gray-800">
-    <div className="max-w-screen-xl mx-auto px-6 h-12 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <span className="text-orange-500 font-bold text-base tracking-tight">DeliverIQ</span>
-        <span className="text-gray-600 text-xs mt-0.5">/ ETA Estimator</span>
+import { MapPin } from 'lucide-react'
+import ThemeToggle from './ThemeToggle'
+
+const NAV_LINKS = ['Estimator', 'How it Works', 'Features', 'About']
+
+const Navbar = ({ theme, onToggle, activeSection, onNavClick }) => (
+  <header
+    className="sticky top-0 z-50"
+    style={{
+      backgroundColor: 'var(--color-surface)',
+      borderBottom: '1px solid var(--color-border)',
+      boxShadow: '0 1px 3px rgba(0,0,0,0.06)',
+    }}
+  >
+    <div className="max-w-screen-2xl mx-auto px-6 h-14 flex items-center justify-between gap-6">
+      <div className="flex items-center gap-2.5 shrink-0">
+        <div
+          className="w-8 h-8 rounded-lg flex items-center justify-center"
+          style={{ backgroundColor: 'var(--color-primary)' }}
+        >
+          <MapPin size={15} color="white" strokeWidth={2.5} />
+        </div>
+        <div className="leading-none">
+          <span className="text-sm font-bold" style={{ color: 'var(--color-text)' }}>DeliverIQ</span>
+          <span className="text-xs block" style={{ color: 'var(--color-text-muted)' }}>Smart Delivery ETA</span>
+        </div>
       </div>
 
-      <nav className="flex items-center gap-1">
-        <a
-          href="#"
-          className="text-xs text-gray-400 hover:text-gray-100 px-3 py-1.5 rounded-md hover:bg-gray-800 transition-colors"
-        >
-          Docs
-        </a>
-        <a
-          href="http://localhost:8000/docs"
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs text-gray-400 hover:text-gray-100 px-3 py-1.5 rounded-md hover:bg-gray-800 transition-colors"
-        >
-          API
-        </a>
-        <a
-          href="https://github.com/DurgamPoojitha/food-delivery-eta-estimator"
-          target="_blank"
-          rel="noreferrer"
-          className="text-xs text-gray-400 hover:text-gray-100 px-3 py-1.5 rounded-md hover:bg-gray-800 transition-colors"
-        >
-          GitHub
-        </a>
-        <span className="ml-2 flex items-center gap-1.5 text-xs text-gray-500">
-          <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-          Live
-        </span>
+      <nav className="hidden md:flex items-center gap-1">
+        {NAV_LINKS.map((link) => (
+          <button
+            key={link}
+            onClick={() => onNavClick?.(link)}
+            className={`nav-link ${activeSection === link ? 'active' : ''}`}
+          >
+            {link}
+          </button>
+        ))}
       </nav>
+
+      <div className="flex items-center gap-2 shrink-0">
+        <div
+          className="hidden sm:flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-full"
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            border: '1px solid var(--color-border)',
+            color: 'var(--color-text-muted)',
+          }}
+        >
+          <span className="w-1.5 h-1.5 rounded-full bg-success-500" style={{ backgroundColor: 'var(--color-success)' }} />
+          Live Status
+        </div>
+        <ThemeToggle theme={theme} onToggle={onToggle} />
+      </div>
     </div>
   </header>
 )
