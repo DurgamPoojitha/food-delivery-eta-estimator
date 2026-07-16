@@ -55,6 +55,10 @@ docker compose up --build -d
 
 # The API is now running at http://localhost:8000
 # Redis is running at localhost:6379
+
+ENVIRONMENT=development
+CORS_ORIGINS=http://localhost:5173
+WEATHER_API_KEY=your_openweathermap_api_key_here
 ```
 
 ### Option 2: Local Python
@@ -66,6 +70,21 @@ pip install -r requirements.txt
 cp .env.example .env
 uvicorn app.main:app --reload
 ```
+
+---
+
+## How External APIs Power Logistics
+
+Modern food delivery platforms like Foodhub, Uber Eats, and Swiggy rely on real-time external data to make accurate operational decisions.
+
+**Why Weather Affects Logistics:**
+Weather fundamentally changes driver behavior and vehicle physics. Rain reduces average travel speeds by 15-20% due to visibility and traction issues. Furthermore, bad weather decreases the supply of available drivers (who log off to avoid the rain) while simultaneously increasing consumer demand (who order in to avoid the rain). By predicting these delays programmatically, we set realistic expectations and prevent customer support spikes.
+
+**Best Practices for Integrating Third-Party APIs:**
+When integrating services like OpenWeatherMap, system resiliency is critical:
+1. **Timeouts:** Never wait indefinitely. DeliverIQ uses a strict 2-second timeout (`httpx.AsyncClient(timeout=2.0)`) to ensure the ETA endpoint stays fast.
+2. **Graceful Fallbacks:** If the Weather API rate limits or drops offline, our service catches the exception and defaults to a `Sunny (+0m)` condition rather than crashing the core checkout flow.
+3. **Caching:** Calling an external API on every request is slow and expensive. We cache the final computed ETA in Redis (which inherently caches the weather state for that coordinate block) for 10 minutes.
 
 ---
 

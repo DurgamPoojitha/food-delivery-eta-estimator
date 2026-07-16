@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:5173"
     
     redis_url: str = "redis://localhost:6379/0"
+    weather_api_key: str | None = None
 
     log_level: str = "INFO"
     log_format: str = "text"

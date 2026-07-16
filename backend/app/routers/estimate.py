@@ -75,4 +75,4 @@ async def estimate_delivery_eta(request: EstimateRequest) -> EstimateResponse:
         request.restaurant_name,
         request.traffic.value,
     )
-    return estimate_eta(request)
+    return await estimate_eta(request)

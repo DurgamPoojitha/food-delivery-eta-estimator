@@ -20,8 +20,11 @@ class PeakHour(str, Enum):
 
 class WeatherCondition(str, Enum):
     sunny      = "sunny"
+    cloudy     = "cloudy"
     rain       = "rain"
     heavy_rain = "heavy_rain"
+    thunderstorm = "thunderstorm"
+    snow       = "snow"
 
 class EstimateRequest(BaseModel):
     
@@ -38,7 +41,6 @@ class EstimateRequest(BaseModel):
                 "traffic":         "medium",
                 "busy_level":      "high",
                 "peak_hour":       "dinner",
-                "weather":         "rain",
                 "is_weekend":      True,
             }
         }
@@ -54,7 +56,6 @@ class EstimateRequest(BaseModel):
     traffic: TrafficLevel = Field(..., description="Traffic modifier (1x, 1.4x, 2x travel time).")
     busy_level: RestaurantBusyLevel = Field(..., description="Kitchen backup delay.")
     peak_hour: PeakHour = Field(..., description="System-wide dispatch delay.")
-    weather: WeatherCondition = Field(..., description="Weather-related slow down.")
     is_weekend: bool = Field(..., description="Weekend surge delay flag.")
 
 class EstimateResponse(BaseModel):
@@ -84,6 +85,8 @@ class EstimateResponse(BaseModel):
     distance_km: float
     total_eta: float
     delivery_status: str
+    weather: str
+    weather_delay: float
     eta_breakdown: Dict[str, float] = Field(
         description="Itemised breakdown of how the total ETA was calculated in minutes."
     )

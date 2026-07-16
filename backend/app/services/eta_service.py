@@ -7,10 +7,10 @@ from app.models.estimate import (
     PeakHour,
     RestaurantBusyLevel,
     TrafficLevel,
-    WeatherCondition,
 )
 from app.utils.haversine import haversine
 from app.services.cache_service import get_cached_eta, set_cached_eta
+from app.services.weather_service import get_current_weather
 
 logger = get_logger(__name__)
 
@@ -34,12 +34,6 @@ PEAK_DELAYS = {
     PeakHour.dinner: 12.0,
 }
 
-WEATHER_DELAYS = {
-    WeatherCondition.sunny:      0.0,
-    WeatherCondition.rain:       10.0,
-    WeatherCondition.heavy_rain: 20.0,
-}
-
 WEEKEND_SURGE_DELAY = 5.0
 
 def _get_delivery_status(total_eta_minutes: float) -> str:
@@ -50,7 +44,7 @@ def _get_delivery_status(total_eta_minutes: float) -> str:
     else:
         return "Delayed"
 
-def estimate_eta(request: EstimateRequest) -> EstimateResponse:
+async def estimate_eta(request: EstimateRequest) -> EstimateResponse:
     logger.info("ETA estimation started | restaurant=%r", request.restaurant_name)
 
     # 1. Check Redis Cache First
@@ -73,7 +67,9 @@ def estimate_eta(request: EstimateRequest) -> EstimateResponse:
 
     busy_delay    = BUSY_DELAYS[request.busy_level]
     peak_delay    = PEAK_DELAYS[request.peak_hour]
-    weather_delay = WEATHER_DELAYS[request.weather]
+    
+    weather_condition, weather_delay = await get_current_weather(request.restaurant_lat, request.restaurant_lon)
+    
     weekend_delay = WEEKEND_SURGE_DELAY if request.is_weekend else 0.0
 
     total_eta = (
@@ -105,6 +101,8 @@ def estimate_eta(request: EstimateRequest) -> EstimateResponse:
         distance_km=round(distance_km, 2),
         total_eta=round(total_eta, 2),
         delivery_status=delivery_status,
+        weather=weather_condition,
+        weather_delay=weather_delay,
         eta_breakdown=eta_breakdown,
     )
 

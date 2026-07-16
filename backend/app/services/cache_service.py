@@ -24,7 +24,6 @@ def _generate_cache_key(request: EstimateRequest) -> str:
         f"{request.traffic.value}-"
         f"{request.busy_level.value}-"
         f"{request.peak_hour.value}-"
-        f"{request.weather.value}-"
         f"{request.is_weekend}"
     )
     

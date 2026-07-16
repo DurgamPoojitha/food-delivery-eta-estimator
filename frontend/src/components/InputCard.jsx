@@ -23,11 +23,6 @@ const PEAK_OPTIONS = [
   { value: 'dinner', label: 'Dinner Rush (+12 min)' },
 ]
 
-const WEATHER_OPTIONS = [
-  { value: 'sunny',      label: 'Sunny (+0 min)' },
-  { value: 'rain',       label: 'Rain (+10 min)' },
-  { value: 'heavy_rain', label: 'Heavy Rain (+20 min)' },
-]
 
 const INITIAL_STATE = {
   restaurant_name: '',
@@ -35,7 +30,6 @@ const INITIAL_STATE = {
   traffic:         'medium',
   busy_level:      'medium',
   peak_hour:       'none',
-  weather:         'sunny',
   is_weekend:      false,
 }
 
@@ -126,7 +120,6 @@ const InputCard = ({
       traffic:         form.traffic,
       busy_level:      form.busy_level,
       peak_hour:       form.peak_hour,
-      weather:         form.weather,
       is_weekend:      form.is_weekend,
     })
   }
@@ -198,11 +191,6 @@ const InputCard = ({
             </Field>
           </div>
 
-          <Field label="Weather Condition" id="weather">
-            <select name="weather" value={form.weather} onChange={handleChange} disabled={isLoading} className="field select-icon">
-              {WEATHER_OPTIONS.map(o => <option key={o.value} value={o.value} className="bg-slate-900 text-white">{o.label}</option>)}
-            </select>
-          </Field>
 
           <label className="flex items-center gap-4 p-4 rounded-xl border border-slate-700/50 bg-slate-800/30 cursor-pointer hover:bg-slate-700/50 hover:border-slate-600 transition-colors group">
             <input type="checkbox" name="is_weekend" checked={form.is_weekend} onChange={handleChange} disabled={isLoading} className="w-5 h-5 rounded bg-slate-900 border-slate-600 text-brand-orange focus:ring-brand-orange focus:ring-offset-slate-800" />

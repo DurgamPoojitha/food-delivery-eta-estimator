@@ -3,6 +3,9 @@ import {
   ArrowTrendingUpIcon,
   ClockIcon,
   ArrowPathIcon,
+  SunIcon,
+  CloudIcon,
+  BoltIcon,
 } from '@heroicons/react/24/outline'
 import StatusBadge from './StatusBadge'
 
@@ -46,8 +49,16 @@ const ResultCard = ({ result, restaurantName, onReset }) => {
     distance_km,
     total_eta,
     delivery_status,
+    weather,
+    weather_delay,
     eta_breakdown,
   } = result
+
+  const getWeatherIcon = (cond) => {
+    if (cond === 'Sunny') return <SunIcon className="w-6 h-6" />
+    if (cond === 'Thunderstorm') return <BoltIcon className="w-6 h-6" />
+    return <CloudIcon className="w-6 h-6" />
+  }
 
   return (
     <div className="flex flex-col gap-6 animate-fade-in">
@@ -94,10 +105,18 @@ const ResultCard = ({ result, restaurantName, onReset }) => {
           delay={180}
           accent="teal"
         />
+        <StatCard
+          icon={getWeatherIcon(weather)}
+          label="Weather"
+          value={weather}
+          unit={`+${weather_delay}m`}
+          delay={240}
+          accent="orange"
+        />
       </div>
 
       
-      <div className="glass-panel rounded-3xl p-8 flex flex-col animate-slide-up" style={{ animationDelay: '240ms', opacity: 0 }}>
+      <div className="glass-panel rounded-3xl p-8 flex flex-col animate-slide-up" style={{ animationDelay: '300ms', opacity: 0 }}>
         <h3 className="text-white font-bold text-sm uppercase tracking-widest mb-6 flex items-center gap-3">
           <span className="w-2 h-2 rounded-full bg-slate-500" />
           Receipt Breakdown
@@ -109,7 +128,7 @@ const ResultCard = ({ result, restaurantName, onReset }) => {
           <ReceiptRow label="Base Prep Time" value={eta_breakdown.base_prep_time} />
           <ReceiptRow label="Restaurant Busy Delay" value={eta_breakdown.busy_delay} />
           <ReceiptRow label="Peak Hour Dispatch" value={eta_breakdown.peak_delay} />
-          <ReceiptRow label="Weather Conditions" value={eta_breakdown.weather_delay} />
+          <ReceiptRow label={`Weather (${weather})`} value={weather_delay} />
           <ReceiptRow label="Weekend Surge" value={eta_breakdown.weekend_delay} />
           
           <div className="mt-4 pt-4 border-t border-slate-700 border-dashed">
