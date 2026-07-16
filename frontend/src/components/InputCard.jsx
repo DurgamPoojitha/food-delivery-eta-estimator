@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   MapPinIcon,
   Cog6ToothIcon,
@@ -99,9 +99,15 @@ const InputCard = ({
 
   const handleTraffic = (value) => setForm((prev) => ({ ...prev, traffic: value }))
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    
+  useEffect(() => {
+    if (restaurantLat !== '' && restaurantLon !== '' && deliveryLat !== '' && deliveryLon !== '') {
+      if (form.restaurant_name.trim() !== '') {
+        submitForm()
+      }
+    }
+  }, [restaurantLat, restaurantLon, deliveryLat, deliveryLon, form.traffic, form.busy_level, form.peak_hour, form.is_weekend])
+
+  const submitForm = () => {
     const coords = { restaurantLat, restaurantLon, deliveryLat, deliveryLon }
     const validationErrors = validate(form, coords)
     
@@ -116,12 +122,17 @@ const InputCard = ({
       restaurant_lon:  parseFloat(restaurantLon),
       delivery_lat:    parseFloat(deliveryLat),
       delivery_lon:    parseFloat(deliveryLon),
-      prep_time:       parseInt(form.prep_time, 10),
+      prep_time:       parseInt(form.prep_time || 0, 10),
       traffic:         form.traffic,
       busy_level:      form.busy_level,
       peak_hour:       form.peak_hour,
       is_weekend:      form.is_weekend,
     })
+  }
+
+  const handleSubmit = (e) => {
+    if (e) e.preventDefault()
+    submitForm()
   }
 
   return (

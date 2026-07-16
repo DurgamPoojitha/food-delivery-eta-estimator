@@ -2,9 +2,9 @@ import { useState } from 'react'
 import Navbar         from '../components/Navbar'
 import Hero           from '../components/Hero'
 import InputCard      from '../components/InputCard'
-import ResultCard     from '../components/ResultCard'
+import ETAResult      from '../components/ETAResult'
 import LoadingSpinner from '../components/LoadingSpinner'
-import DeliveryMap    from '../components/DeliveryMap'
+import MapSelector    from '../components/MapSelector'
 import Footer         from '../components/Footer'
 import { estimateETA } from '../services/api'
 import { ExclamationTriangleIcon } from '@heroicons/react/24/outline'
@@ -67,6 +67,10 @@ const Home = () => {
   const handleReset = () => {
     setResult(null)
     setError(null)
+    setRestaurantLat('')
+    setRestaurantLon('')
+    setDeliveryLat('')
+    setDeliveryLon('')
     setView(VIEWS.FORM)
   }
 
@@ -80,13 +84,14 @@ const Home = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start relative z-10">
           
           
-          <DeliveryMap 
+          <MapSelector 
             restaurantLat={restaurantLat}
             restaurantLon={restaurantLon}
             deliveryLat={deliveryLat}
             deliveryLon={deliveryLon}
             onSetRestaurant={handleSetRestaurant}
             onSetDelivery={handleSetDelivery}
+            onReset={handleReset}
           />
 
           
@@ -125,7 +130,7 @@ const Home = () => {
             )}
 
             {view === VIEWS.RESULT && result && (
-              <ResultCard result={result} restaurantName={restaurantName} onReset={handleReset} />
+              <ETAResult result={result} restaurantName={restaurantName} onReset={handleReset} />
             )}
           </div>
 
