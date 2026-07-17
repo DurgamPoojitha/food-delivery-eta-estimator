@@ -1,4 +1,4 @@
-import { Github, ExternalLink } from 'lucide-react'
+import { Code2, ExternalLink } from 'lucide-react'
 
 const CONCEPTS = [
   { label: 'REST API Design',        detail: 'FastAPI + Pydantic v2' },
@@ -86,7 +86,7 @@ const AboutSection = () => (
             rel="noreferrer"
             className="btn-ghost text-xs"
           >
-            <Github size={13} /> GitHub
+            <Code2 size={13} /> GitHub
           </a>
           <a
             href="http://localhost:8000/docs"
