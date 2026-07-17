@@ -5,8 +5,9 @@ import MapView        from '../components/MapView'
 import ETADashboard   from '../components/ETADashboard'
 import LoadingSkeleton from '../components/LoadingSkeleton'
 import FeatureCard    from '../components/FeatureCard'
-import HowItWorks     from '../components/HowItWorks'
+import HowItWorks      from '../components/HowItWorks'
 import FeaturesSection from '../components/FeaturesSection'
+import AboutSection    from '../components/AboutSection'
 import { estimateETA } from '../services/api'
 import { useTheme } from '../hooks/useTheme'
 import { Target, Zap, Route, Server, AlertCircle } from 'lucide-react'
@@ -111,6 +112,8 @@ const Home = () => {
           <HowItWorks />
         ) : activeSection === 'Features' ? (
           <FeaturesSection />
+        ) : activeSection === 'About' ? (
+          <AboutSection />
         ) : (
           <div className="flex flex-col lg:flex-row gap-6">
             <div className="w-full lg:w-[35%] shrink-0" style={{ minHeight: '600px' }}>
